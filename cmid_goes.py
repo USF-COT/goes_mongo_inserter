@@ -5,9 +5,12 @@ import threading
 
 logger = logging.getLogger("CMID")
 
+from pymongo import MongoClient
+
 class GOESFileParser(threading.Thread):
     path = ''
     config = {}
+    connection = MongoClient('localhost', 27017)
 
     def __init__(self, path, config):
         threading.Thread.__init__(self)
@@ -17,20 +20,31 @@ class GOESFileParser(threading.Thread):
     def run(self):
         logger.info("Config: %s" % (self.config))
         # Open, process, and insert data according to configuration
-        offset = self.config["line_offset"]
         with open(self.path, 'r') as f:
             # Chew up offset lines
+            offset = self.config['line_offset']
             while offset > 0:
                 f.readline()
                 offset = offset - 1
                 continue
 
+            data = []
             for line in f:
                 line_parts = line.split(',')
-                if line_parts[0] in config.lines:
-                    pass
+                if line_parts[0] in self.config['lines']:
+                    line_data = {}
+                    # Parse fields
+
+                    # Store in data array
+
                 else:
                     logger.info("Ignoring line with unknown prefix in file %s: %s" % (self.path, line_parts[0]))
+
+            # Connect to Mongo
+            conn = MongoClient('localhost', 27017)
+            db = conn['COMPS']
+            collection = db[self.config['station']]
+            collection.insert(data)
 
 class GOESUpdateHandler(pyinotify.ProcessEvent):
     configs = {}

@@ -50,8 +50,8 @@ if sys.argv[1] == 'start':
     # Start Daemon
     logger.info("Started")
     try:
-    #    notifier.loop(daemonize=True, pid_file=pid_file)
-        notifier.loop()
+        notifier.loop(daemonize=True, pid_file=pid_file)
+    #    notifier.loop()
     except pyinotify.NotifierError, err:
         logger.error('Unable to start notifier loop: %s' % (err))
 elif sys.argv[1] == 'stop':
@@ -65,4 +65,4 @@ elif sys.argv[1] == 'stop':
 else:
     print sys.argv
     print "Unknown usage.  Must enter: python cmid.py start|stop"
-
+    sys.exit(1)
