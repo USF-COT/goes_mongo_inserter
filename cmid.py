@@ -30,12 +30,16 @@ handler = logging.FileHandler('/var/log/cmid/cmid.log')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-# Load Configuration
-config_path = '/etc/cmid/cmid.conf'
-config_contents = ''
-with open(config_path, 'r') as f:
-    config_contents = f.read()
-configs = json.loads(config_contents)
+# Load Configurations
+configs = {}
+config_path = '/etc/cmid'
+for filename in os.listdir(config_path):
+    config_contents = ''
+    with open(config_path+'/'+filename, 'r') as f:
+        config_contents = f.read()
+        conf = json.loads(config_contents)
+        for k,v in conf.items():
+            configs[k] = v
 
 # Setup PyInotify
 wm = pyinotify.WatchManager()
@@ -51,7 +55,13 @@ if sys.argv[1] == 'start':
     logger.info("Started")
     try:
         notifier.loop(daemonize=True, pid_file=pid_file)
-    #    notifier.loop()
+    except pyinotify.NotifierError, err:
+        logger.error('Unable to start notifier loop: %s' % (err))
+elif sys.argv[1] == 'debug':
+    # Start Daemon
+    logger.info("Started in Debug Mode")
+    try:
+        notifier.loop()
     except pyinotify.NotifierError, err:
         logger.error('Unable to start notifier loop: %s' % (err))
 elif sys.argv[1] == 'stop':
