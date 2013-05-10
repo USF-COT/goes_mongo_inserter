@@ -4,7 +4,10 @@ from datetime import datetime
 import numpy as np
 import numpy.ma as ma
 
-from rdi_pd15.converters.pd0_converters import PD15StringToPD0
+import logging
+logger = logging.getLogger("GMI")
+
+from rdi_pd15.pd0_converters import PD15_string_to_PD0
 from pycurrents.adcp.rdiraw import Multiread
 from adcp_qartod_qaqc.trdi import TRDIQAQC
 
@@ -138,31 +141,45 @@ def gen_adcp_data_doc(pd0_data, last_good_counter,
     return data_doc
 
 
-def parse_trdi_pd15(f, db, config, file_object_id):
-    # Bleed off headers
-    for i in xrange(0, config['num_header_lines']):
-        f.readline()
+def trdi_pd15_line_to_mongo(line_data, config,
+                            file_object_id, mongo_collection):
+    print line_data
+    if len(line_data) > 0:
+        data = PD15_string_to_PD0(line_data)
+    else:
+        logger.error('No ADCP data found in specified GOES file.')
+        return
 
-    # Get PD15 data line
-    data_line = f.readline()
-    data = PD15StringToPD0(data_line)
+    if data is not None:
+        temp_file = mkstemp()
+        with open(temp_file[1], 'wb') as f:
+            f.write(data)
 
-    temp_file = mkstemp()
-    with open(temp_file[1], 'wb') as f:
-        for d in data:
-            f.write(d)
+        print temp_file[1]
 
-    pd0_data = Multiread(temp_file[1]).read()
-    os.remove(temp_file[1])
+        pd0_data = Multiread(temp_file[1], config['multiread_mode']).read()
+        os.remove(temp_file[1])
 
-    collection = db[config['station'] + '.ADCP']
+        (qaqc_doc, last_good_counter) = gen_adcp_qaqc_doc(pd0_data, config)
+        qaqc_id = mongo_collection.insert(qaqc_doc)
 
-    (qaqc_doc, last_good_counter) = gen_adcp_qaqc_doc(pd0_data, config)
-    qaqc_id = collection.insert(qaqc_doc)
+        adcp_config_doc = gen_adcp_config_doc(pd0_data, config)
+        adcp_config_id = mongo_collection.insert(adcp_config_doc)
 
-    adcp_config_doc = gen_adcp_config_doc(collection, pd0_data, config)
-    adcp_config_id = collection.insert(adcp_config_doc)
+        data_doc = gen_adcp_data_doc(pd0_data, last_good_counter,
+                                     file_object_id, qaqc_id, adcp_config_id)
+        mongo_collection.insert(data_doc)
 
-    data_doc = gen_adcp_data_doc(pd0_data, last_good_counter,
-                                 file_object_id, qaqc_id, adcp_config_id)
-    collection.insert(data_doc)
+
+def parse_trdi_pd15(path, config, file_object_id, mongo_db):
+    with open(path, 'r') as f:
+        # Bleed off headers
+        for i in xrange(0, config['line_offset']-1):
+            f.readline()
+
+        # Get PD15 data line
+        line_data = f.readline()
+
+    mongo_collection = mongo_db[config['station']+'.ADCP']
+    trdi_pd15_line_to_mongo(line_data, config,
+                            file_object_id, mongo_collection)

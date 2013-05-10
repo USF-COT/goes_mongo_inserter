@@ -4,97 +4,32 @@ import pyinotify
 import threading
 import os
 
-logger = logging.getLogger("CMID")
+logger = logging.getLogger("GMI")
 
 from datetime import datetime
-from pytz import timezone
 
 from pymongo import MongoClient
 
-from goes_mongo_inserter.trdi_adcp_parser import parse_trdi_pd15
+from prefixed_lines_parser import parse_prefixed_lines
+from prefixed_sections_parser import parse_prefixed_sections
+from trdi_adcp_parser import parse_trdi_pd15
 
 
-def parse_int(line_data, field_desc, part):
-    if 'ignore' in field_desc:
-        ignore_vals = field_desc['ignore'].split(',')
-        if part in ignore_vals:
-            return None
+def insert_goes_file(path, config, goes_id, mongo_collection):
+    fstat = os.stat(path)
+    file_object_id = None
+    with open(path, 'r') as f:
+        file_contents = f.read()
+        file_object_id = mongo_collection.insert(
+            {
+                'goes_id': goes_id,
+                'contents': file_contents,
+                'processed': datetime.utcnow(),
+                'modified': datetime.fromtimestamp(int(fstat.st_mtime))
+            }
+        )
 
-    return int(part)
-
-
-def parse_float(line_data, field_desc, part):
-    if 'ignore' in field_desc:
-        ignore_vals = field_desc['ignore'].split(',')
-        if part in ignore_vals:
-            return None
-
-    return float(part)
-
-
-def parse_text(line_data, field_desc, part):
-    if 'ignore' in field_desc:
-        ignore_vals = field_desc['ignore'].split(',')
-        if part in ignore_vals:
-            return None
-
-    return part
-
-
-def parse_timestamp(line_data, field_desc, part):
-    fmt = field_desc['format']
-    tz = timezone(field_desc['timezone'])
-
-    dt = datetime.strptime(part, fmt)
-    return tz.localize(dt)
-
-
-def convert_merged_degrees_minutes(degrees_minutes):
-    degrees = 0
-
-    decimal_place = degrees_minutes.find('.')
-
-    if decimal_place == -1:
-        logger.error('Unable to parse GPS string: '
-                     'No decimal place '
-                     'present in string (%s)' % (degrees_minutes,))
-        return -1
-
-    deg_str = degrees_minutes[0:decimal_place-2]
-    min_str = degrees_minutes[decimal_place-2:]
-
-    try:
-        degrees = float(deg_str)
-        minutes = float(min_str)
-        if degrees < 0:
-            minutes *= -1
-
-        degrees += minutes/60
-        return degrees
-    except:
-        return -1
-
-
-def parse_point_degrees_minutes(line_data, field_desc, part):
-    gps_pos = [0, 0]
-    name = field_desc['name']
-    if name in line_data:
-        gps_pos = line_data[name]
-
-    value = convert_merged_degrees_minutes(part)
-    if field_desc['component'] == 'lng':
-        # For some reason GOES returns a positive
-        # longitude when it should be negative
-        gps_pos[0] = value * -1
-    elif field_desc['component'] == 'lat':
-        gps_pos[1] = value
-
-    return gps_pos
-
-
-datatype_parsers = {'int': parse_int, 'float': parse_float, 'text': parse_text,
-                    'timestamp': parse_timestamp,
-                    'point_degrees_minutes': parse_point_degrees_minutes}
+    return file_object_id
 
 
 class GOESFileParser(threading.Thread):
@@ -109,97 +44,29 @@ class GOESFileParser(threading.Thread):
         self.path = path
         self.config = config
 
-    def parse_line(self, prefix, line_parts):
-        line_data = {}
-
-        line_config = self.config['lines'][prefix]
-
-        # Parse text fields
-        for i, part in enumerate(line_parts[1:]):
-            if i < len(line_config):
-                field_desc = line_config[i]
-                data_key = field_desc['name']
-                if 'units' in field_desc:
-                    data_key += "-%s" % (field_desc['units'],)
-
-                field_type = field_desc['type']
-                if field_type in datatype_parsers:
-                    value = datatype_parsers[field_type](line_data,
-                                                         field_desc,
-                                                         part.strip())
-                    if value is not None:
-                        line_data[data_key] = value
-                else:
-                    logger.error('Unknown type %s in configuration file line '
-                                 '%s, field %s' % (field_type,
-                                                   line_parts[0],
-                                                   field_desc['name']))
-            else:
-                logger.error('Exceeded specified number of field '
-                             'descriptors.  Ignoring remaining fields')
-
-        return line_data
-
     def run(self):
         # Connect to Mongo
         conn = MongoClient('localhost', 27017)
         db = conn['COMPS']
 
         logger.info("Config: %s" % (self.config))
-        fstat = os.stat(self.path)
-        with open(self.path, 'r') as f:
-            file_contents = f.read()
-            collection = db[self.config['station']+'.files']
-            file_object_id = collection.insert(
-                {
-                    'goes_id': self.goes_id,
-                    'contents': file_contents,
-                    'processed': datetime.utcnow(),
-                    'modified': datetime.fromtimestamp(int(fstat.st_mtime))
-                }
-            )
 
-        # Open, process, and insert data according to configuration
-        data = []
-        with open(self.path, 'r') as f:
-            # TODO: Read GOES header here then insert record
-            offset = self.config['line_offset']
-            while offset > 0:
-                f.readline()
-                offset = offset - 1
-                continue
+        file_collection = db[self.config['station']+'.files']
+        file_object_id = insert_goes_file(self.path, self.config,
+                                          self.goes_id, file_collection)
 
-            if self.config['type'] == 'rdi_pd15':
-                parse_trdi_pd15(f, self.config, file_object_id)
-            elif self.config['type'] == 'text':
-                for line in f:
-                    line_parts = line.split(',')
-                    prefix = None
-                    if line_parts[0] in self.config['lines']:
-                        prefix = line_parts[0]
-                    elif 'NOHEADER' in self.config['lines']:
-                        prefix = 'NOHEADER'
-                    else:
-                        logger.info("Ignoring line with unknown prefix"
-                                    "in file %s: %s" % (self.path,
-                                                        line_parts[0]))
-
-                    if prefix is not None:
-                        line_data = self.parse_line(prefix=prefix,
-                                                    line_parts=line_parts)
-
-                    if len(line_data) > 0:
-                        line_data['prefix'] = prefix
-                        line_data['file_id'] = file_object_id
-                        data.append(line_data)
-
-            print data
-
-        # Connect to Mongo
-        #conn = MongoClient('localhost', 27017)
-        #db = conn['COMPS']
-        #collection = db[self.config['station']]
-        #collection.insert(data)
+        if file_object_id is not None:
+            if self.config['type'] == 'trdi_adcp_pd15':
+                parse_trdi_pd15(self.path, self.config,
+                                file_object_id, db)
+            elif self.config['type'] == 'prefixed_lines':
+                parse_prefixed_lines(self.path, self.config,
+                                     file_object_id, db)
+            elif self.config['type'] == 'prefixed_sections':
+                parse_prefixed_sections(self.path, self.config,
+                                        file_object_id, db)
+        else:
+            logger.error('Error inserting GOES file details. No data inserted')
 
 
 class GOESUpdateHandler(pyinotify.ProcessEvent):
