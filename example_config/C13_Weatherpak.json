@@ -1,0 +1,22 @@
+{
+    "140C13E6": {
+        "station": "C13",
+        "type": "prefixed_lines",
+        "line_offset": 1,
+        "lines": {
+            "NOHEADER": [
+                {"name": "serial_number", "type": "int"},
+                {"name": "timestamp", "type": "timestamp", "part": "date", "format":"%m/%d/%Y", "timezone": "UTC"},
+                {"name": "timestamp", "type": "timestamp", "part": "time", "format":"%H:%M:%S", "timezone": "UTC"},
+                {"name": "wind_speed", "type": "float", "units": "m/s", "ignore": "-99"},
+                {"name": "wind_direction", "type": "int", "units": "degrees", "ignore": "-99"},
+                {"name": "barometric_pressure", "type": "float", "units": "mbars", "ignore": "-99"},
+                {"name": "air_temperature", "type": "float", "units": "celsius", "ignore": "-99"},
+                {"name": "sea_surface_temperature", "type": "float", "units": "degrees", "ignore": "-99"},
+                {"name": "relative_humidity", "type": "float", "units": "percent", "ignore": "-99"},
+                {"name": "buoy_compass", "type": "float", "units": "degrees", "ignore": "-99"},
+                {"name": "battery", "type": "float", "units": "volts", "ignore": "-99"}
+            ]
+        }
+    }
+}

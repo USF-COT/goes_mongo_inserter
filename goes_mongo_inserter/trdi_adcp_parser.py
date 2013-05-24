@@ -34,12 +34,12 @@ def gen_adcp_qaqc_doc(pd0_data, config):
     qaqc_doc['sensor_orientation'] = qaqc.orientation_flags()[0]
     qaqc_doc['speed_of_sound'] = qaqc.sound_speed_flags()[0]
     qaqc_doc['correlation_magnitude'] = qaqc.correlation_magnitude_flags()[0]
-    qaqc_doc['percent_good'] = qaqc.percent_good_flags()[0]
-    qaqc_doc['current_speed'] = qaqc.current_speed_flags()
-    qaqc_doc['current_direction'] = qaqc.current_direction_flags()
-    qaqc_doc['horizontal_velocity'] = qaqc.horizontal_velocity_flags()
-    qaqc_doc['vertical_velocity'] = qaqc.vertical_velocity_flags()
-    qaqc_doc['error_velocity'] = qaqc.error_velocity_flags()
+    qaqc_doc['percent_good'] = qaqc.percent_good_flags()[0].tolist()
+    qaqc_doc['current_speed'] = qaqc.current_speed_flags().tolist()
+    qaqc_doc['current_direction'] = qaqc.current_direction_flags().tolist()
+    qaqc_doc['horizontal_velocity'] = qaqc.horizontal_velocity_flags().tolist()
+    qaqc_doc['vertical_velocity'] = qaqc.vertical_velocity_flags().tolist()
+    qaqc_doc['error_velocity'] = qaqc.error_velocity_flags().tolist()
     qaqc_doc['echo_intensity'] = qaqc.echo_intensity_flags()[0]
     qaqc_doc['range_drop_off'] = qaqc.range_drop_off_flags()[0]
     qaqc_doc['current_gradient'] = qaqc.current_speed_gradient_flags()
@@ -155,30 +155,31 @@ def trdi_pd15_line_to_mongo(line_data, config,
         with open(temp_file[1], 'wb') as f:
             f.write(data)
 
-        print temp_file[1]
-
-        pd0_data = Multiread(temp_file[1], config['multiread_mode']).read()
+        pd0_data = Multiread([temp_file[1]], config['multiread_mode']).read()
         os.remove(temp_file[1])
 
         (qaqc_doc, last_good_counter) = gen_adcp_qaqc_doc(pd0_data, config)
+        print qaqc_doc
         qaqc_id = mongo_collection.insert(qaqc_doc)
 
         adcp_config_doc = gen_adcp_config_doc(pd0_data, config)
+        print adcp_config_doc
         adcp_config_id = mongo_collection.insert(adcp_config_doc)
 
         data_doc = gen_adcp_data_doc(pd0_data, last_good_counter,
                                      file_object_id, qaqc_id, adcp_config_id)
+        print data_doc
         mongo_collection.insert(data_doc)
 
 
 def parse_trdi_pd15(path, config, file_object_id, mongo_db):
-    with open(path, 'r') as f:
+    with open(path, 'rb') as f:
         # Bleed off headers
-        for i in xrange(0, config['line_offset']-1):
+        for i in xrange(0, config['line_offset']):
             f.readline()
 
         # Get PD15 data line
-        line_data = f.readline()
+        line_data = f.read(4096)
 
     mongo_collection = mongo_db[config['station']+'.ADCP']
     trdi_pd15_line_to_mongo(line_data, config,

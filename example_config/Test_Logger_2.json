@@ -1,0 +1,72 @@
+{
+    "14003496": {
+        "station": "Test Logger 2",
+        "type": "prefixed_lines",
+        "line_offset": 1,
+        "lines": {
+            "MT": [
+                {"name": "timestamp", "type": "timestamp", "format":"%m/%d/%Y %H:%M:%S","timezone": "UTC"},
+                {"name": "eastward_wind", "type": "float", "units": "m/s", "ignore": "-99.000"},
+                {"name": "northward_wind", "type": "float", "units": "m/s", "ignore": "-99.000"},
+                {"name": "wind_speed_raw", "type": "float", "units": "m/s", "ignore": "-99.000"},
+                {"name": "wind_speed_max", "type": "float", "units": "m/s", "ignore": "-99.000"},
+                {"name": "wind_speed_min", "type": "float", "units": "m/s", "ignore": "-99.000"},
+                {"name": "wind_vane_raw", "type": "float", "units": "degrees", "ignore": "-99.000"},
+                {"name": "wind_compass_raw", "type": "float", "units": "degrees", "ignore": "-99.000"},
+                {"skip_field": true},
+                {"skip_field": true},
+                {"skip_field": true},
+                {"name": "long_wave_radiation", "type": "float", "ignore": "-99.000"},
+                {"name": "relative_humidity", "type": "float", "units": "percent", "ignore": "-99.000"},
+                {"name": "air_temperature", "type": "float", "units": "celsius", "ignore": "-99.000"},
+                {"name": "short_wave_radiation", "type": "float", "ignore": "-99.000"},
+                {"name": "air_pressure", "type": "float", "units": "mBars", "ignore": "-99.000"}
+            ],
+            "WG1": [
+                {"name": "timestamp", "type": "timestamp", "format":"%m/%d/%Y %H:%M:%S","timezone": "UTC"},
+                {"name": "wind_speed_max", "type": "float", "units": "m/s", "ignore": "-99.000"},
+                {"name": "wind_speed_min", "type": "float", "units": "m/s", "ignore": "-99.000"},
+                {"name": "wind_speed", "type": "float", "units": "m/s", "ignore": "-99.000"},
+                {"name": "wind_from_direction", "type": "float", "units": "degrees", "ignore": "-99.000"},
+                {"name": "wind_compass", "type": "float", "units": "degrees", "ignore": "-99.000"},
+                {"name": "wind_compass_pitch", "type": "float", "units": "degrees", "ignore": "-99.000"},
+                {"name": "wind_compass_roll", "type": "float", "units": "degrees", "ignore": "-99.000"}
+            ],
+            "WG2": [
+                {"name": "timestamp", "type": "timestamp", "format":"%m/%d/%Y %H:%M:%S","timezone": "UTC"},
+                {"name": "wind_speed_max", "type": "float", "units": "m/s", "ignore": "-99.000"},
+                {"name": "wind_speed_min", "type": "float", "units": "m/s", "ignore": "-99.000"},
+                {"name": "wind_speed", "type": "float", "units": "m/s", "ignore": "-99.000"},
+                {"name": "wind_from_direction", "type": "float", "units": "degrees", "ignore": "-99.000"},
+                {"name": "wind_compass", "type": "float", "units": "degrees", "ignore": "-99.000"},
+                {"name": "wind_compass_pitch", "type": "float", "units": "degrees", "ignore": "-99.000"},
+                {"name": "wind_compass_roll", "type": "float", "units": "degrees", "ignore": "-99.000"}
+            ],
+            "TC": [
+                {"name": "timestamp", "type": "timestamp", "format":"%m/%d/%Y %H:%M:%S", "timezone": "UTC"},
+                {"name": "conductivity_1", "type": "float", "units": "mS", "ignore": "-99.000"},
+                {"name": "temperature_1", "type": "float", "units": "celsius", "ignore": "-99.000"},
+                {"name": "conductivity_2", "type": "float", "units": "mS", "ignore": "-99.000"},
+                {"name": "temperature_2", "type": "float", "units": "celsius", "ignore": "-99.000"},
+                {"name": "conductivity_3", "type": "float", "units": "mS", "ignore": "-99.000"},
+                {"name": "temperature_3", "type": "float", "units": "celsius", "ignore": "-99.000"},
+                {"name": "conductivity_4", "type": "float", "units": "mS", "ignore": "-99.000"},
+                {"name": "temperature_4", "type": "float", "units": "celsius", "ignore": "-99.000"},
+                {"name": "conductivity_5", "type": "float", "units": "mS", "ignore": "-99.000"},
+                {"name": "temperature_6", "type": "float", "units": "celsius", "ignore": "-99.000"},
+                {"name": "conductivity_6", "type": "float", "units": "mS", "ignore": "-99.000"},
+                {"name": "temperature_6", "type": "float", "units": "celsius", "ignore": "-99.000"}
+            ],
+            "DG": [
+                {"name": "timestamp", "type": "timestamp", "format":"%m/%d/%Y %H:%M:%S", "timezone": "UTC"},
+                {"name": "regulated_voltage", "type": "float", "units": "volts", "ignore": "-99.000"},
+                {"name": "panel_temperature", "type": "float", "units": "celsius", "ignore": "-99.000"},
+                {"name": "can_number", "type": "float", "ignore": "-99.000"},
+                {"name": "battery_voltage", "type": "float", "units": "volts", "ignore": "-99.000"},
+                {"name": "software_version", "type": "float", "ignore": "-99.000"},
+                {"name": "actual_position", "type": "point_degrees_minutes", "component": "lat"},
+                {"name": "actual_position", "type": "point_degrees_minutes", "component": "lng"}
+            ]
+        }
+    }
+}

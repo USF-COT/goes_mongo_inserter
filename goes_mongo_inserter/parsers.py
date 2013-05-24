@@ -15,21 +15,51 @@ from prefixed_sections_parser import parse_prefixed_sections
 from trdi_adcp_parser import parse_trdi_pd15
 
 
+def parse_goes_header(header):
+    header_fields = {}
+
+    header_fields['goes_id'] = header[:8]
+
+    # Parse timestamp
+    year = header[8:10]
+    doy = header[10:13]
+    hour = header[13:15]
+    minute = header[15:17]
+    second = header[17:19]
+    date_string = '%s-%s %s:%s:%s' % (year, doy, hour, minute, second)
+    header_fields['timestamp'] = datetime.strptime(date_string,
+                                                   '%y-%j %H:%M:%S')
+
+    header_fields['failure_code'] = header[19:20]
+    header_fields['signal_strength'] = header[20:22]
+    header_fields['frequency_offset'] = header[22:24]
+    header_fields['modulation_index_1'] = header[24:25]
+    header_fields['modulation_index_2'] = header[25:26]
+    header_fields['data_quality'] = header[26:30]
+    header_fields['csta'] = header[30:32]
+    header_fields['number_of_bytes'] = header[32:37]
+
+    return header_fields
+
+
 def insert_goes_file(path, config, goes_id, mongo_collection):
     fstat = os.stat(path)
     file_object_id = None
+    fields = {}
+    file_contents = []
     with open(path, 'r') as f:
-        file_contents = f.read()
-        file_object_id = mongo_collection.insert(
-            {
-                'goes_id': goes_id,
-                'contents': file_contents,
-                'processed': datetime.utcnow(),
-                'modified': datetime.fromtimestamp(int(fstat.st_mtime))
-            }
-        )
+        file_contents = list(f)
 
-    return file_object_id
+    # Parse out header and initialize field dictionary to be inserted
+    if len(file_contents) > 0:
+        fields = parse_goes_header(file_contents[0])
+        fields['contents'] = file_contents
+        fields['processed'] = datetime.utcnow()
+        fields['modified'] = datetime.fromtimestamp(int(fstat.st_mtime))
+
+        file_object_id = mongo_collection.insert(fields)
+
+    return (file_object_id, fields)
 
 
 class GOESFileParser(threading.Thread):
@@ -52,19 +82,25 @@ class GOESFileParser(threading.Thread):
         logger.info("Config: %s" % (self.config))
 
         file_collection = db[self.config['station']+'.files']
-        file_object_id = insert_goes_file(self.path, self.config,
-                                          self.goes_id, file_collection)
+        file_object_id, fields = insert_goes_file(self.path,
+                                                  self.config,
+                                                  self.goes_id,
+                                                  file_collection)
 
-        if file_object_id is not None:
+        if file_object_id is not None and fields['failure_code'] == 'G':
             if self.config['type'] == 'trdi_adcp_pd15':
                 parse_trdi_pd15(self.path, self.config,
                                 file_object_id, db)
             elif self.config['type'] == 'prefixed_lines':
+                print "Parsing prefixed lines"
                 parse_prefixed_lines(self.path, self.config,
                                      file_object_id, db)
             elif self.config['type'] == 'prefixed_sections':
                 parse_prefixed_sections(self.path, self.config,
                                         file_object_id, db)
+        elif file_object_id is not None and fields['failure_code'] == '?':
+            logger.info('Bad goes transmission for file '
+                        'with mongo id: %s' % (file_object_id))
         else:
             logger.error('Error inserting GOES file details. No data inserted')
 

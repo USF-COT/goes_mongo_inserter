@@ -16,6 +16,10 @@ def parse_line(config, prefix, line_parts, file_object_id):
     for i, part in enumerate(line_parts[1:]):
         if i < len(line_config):
             field_desc = line_config[i]
+
+            if 'skip_field' in field_desc and field_desc['skip_field']:
+                continue  # Skip line
+
             data_key = field_desc['name']
             if 'units' in field_desc:
                 data_key += "-%s" % (field_desc['units'],)
@@ -36,6 +40,7 @@ def parse_line(config, prefix, line_parts, file_object_id):
             logger.error('Exceeded specified number of field '
                          'descriptors.  Ignoring remaining fields')
 
+    print line_data
     return line_data
 
 
@@ -47,13 +52,13 @@ def parse_prefixed_lines(path, config, file_object_id, mongo_db):
     """
 
     # Bleed off headers to get to data
+    data = []
     with open(path, 'r') as f:
         offset = config['line_offset']
         while offset > 0:
             f.readline()
             offset = offset - 1
 
-        data = []
         for line in f:
             line_parts = line.split(',')
             prefix = None
@@ -61,6 +66,7 @@ def parse_prefixed_lines(path, config, file_object_id, mongo_db):
                 prefix = line_parts[0]
             elif 'NOHEADER' in config['lines']:
                 prefix = 'NOHEADER'
+                line_parts.insert(0, 'NOHEADER')
             else:
                 logger.info("Ignoring line with unknown prefix"
                             "in file %s: %s" % (path,

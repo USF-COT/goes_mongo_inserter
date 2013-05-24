@@ -37,8 +37,22 @@ def parse_timestamp(line_data, field_desc, part):
     fmt = field_desc['format']
     tz = timezone(field_desc['timezone'])
 
-    dt = datetime.strptime(part, fmt)
-    return tz.localize(dt)
+    if 'part' in field_desc:
+        if field_desc['part'] == 'date':
+            dt = datetime.strptime(part, fmt)
+            dt = tz.localize(dt)
+            if 'timestamp' in line_data:
+                dt = datetime.combine(dt.date(), line_data['timestamp'])
+        elif field_desc['part'] == 'time':
+            dt = datetime.strptime(part, fmt)
+            dt = tz.localize(dt)
+            if 'timestamp' in line_data:
+                dt = datetime.combine(line_data['timestamp'], dt.time())
+    else:
+        dt = datetime.strptime(part, fmt)
+        dt = tz.localize(dt)
+
+    return dt
 
 
 def convert_merged_degrees_minutes(degrees_minutes):
@@ -84,6 +98,35 @@ def parse_point_degrees_minutes(line_data, field_desc, part):
     return gps_pos
 
 
-datatype_parsers = {'int': parse_int, 'float': parse_float, 'text': parse_text,
-                    'timestamp': parse_timestamp,
-                    'point_degrees_minutes': parse_point_degrees_minutes}
+def convert_directional_degrees_minutes(degrees_minutes_direction):
+    coordinates = degrees_minutes_direction[:-1]
+    direction = degrees_minutes_direction[-1]
+
+    position = convert_merged_degrees_minutes(coordinates)
+    if direction == 'S' or direction == 'W':
+        position *= -1
+
+    return position
+
+
+def parse_point_degrees_minutes_direction(line_data, field_desc, part):
+    name = field_desc['name']
+    if name in line_data:
+        gps_pos = line_data[name]
+    else:
+        gps_pos = [0, 0]
+
+    value = convert_directional_degrees_minutes(part)
+    if field_desc['component'] == 'lng':
+        gps_pos[0] = value
+    elif field_desc['component'] == 'lat':
+        gps_pos[1] = value
+
+    return gps_pos
+
+datatype_parsers = {
+    'int': parse_int, 'float': parse_float, 'text': parse_text,
+    'timestamp': parse_timestamp,
+    'point_degrees_minutes': parse_point_degrees_minutes,
+    'point_degrees_minutes_direction': parse_point_degrees_minutes_direction
+}

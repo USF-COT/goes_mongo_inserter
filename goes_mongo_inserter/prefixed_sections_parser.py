@@ -71,7 +71,10 @@ def parse_prefixed_sections(path, config, file_object_id, mongo_db):
         for line in f:
             line = line.strip()
             if line in config['sections']:
-                section = line
+                if len(config['sections'][line]) > 0:
+                    section = line
+                else:
+                    section = None
                 dataset_index = 0
             elif line == config['no_section_data_character']:
                 logger.info('No section data character (%s) found for section '

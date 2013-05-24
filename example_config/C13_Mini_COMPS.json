@@ -1,0 +1,55 @@
+{
+    "1408733A": {
+        "station": "C12",
+        "type": "prefixed_sections",
+        "line_offset": 1,
+        "no_section_data_character": "?",
+        "sections": {
+            "TIME": [
+                {"name": "timestamp", "type": "timestamp", "format":"%m-%d-%y %H:%M:%S","timezone": "UTC"}
+            ],
+            "MCAT": [
+                {"name": "conductivity_1", "type": "float", "units": "mS", "ignore": "-99"},
+                {"name": "temperature_1", "type": "float", "units": "celsius", "ignore": "-99"},
+                {"name": "conductivity_2", "type": "float", "units": "mS", "ignore": "-99"},
+                {"name": "temperature_2", "type": "float", "units": "celsius", "ignore": "-99"},
+                {"name": "conductivity_3", "type": "float", "units": "mS", "ignore": "-99"},
+                {"name": "temperature_3", "type": "float", "units": "celsius", "ignore": "-99"},
+                {"name": "conductivity_4", "type": "float", "units": "mS", "ignore": "-99"},
+                {"name": "temperature_4", "type": "float", "units": "celsius", "ignore": "-99"},
+                {"name": "conductivity_5", "type": "float", "units": "mS", "ignore": "-99"},
+                {"name": "temperature_6", "type": "float", "units": "celsius", "ignore": "-99"},
+                {"name": "conductivity_6", "type": "float", "units": "mS", "ignore": "-99"},
+                {"name": "temperature_6", "type": "float", "units": "celsius", "ignore": "-99"}
+            ],
+            "SST": [
+                {"name": "conductivity", "type": "float", "units": "mS", "ignore": "-99"},
+                {"name": "sea_surface_temperature", "type": "float", "units": "celsius", "ignore": "-99"}
+            ],
+            "MISC": [
+                {"name": "internal_can_temperature", "type": "float", "units": "celsius", "ignore": "-99"},
+                {"name": "unloaded_current", "type": "float", "units": "amps", "ignore": "-99"},
+                {"name": "unloaded_battery_voltage", "type": "float", "units": "celsius", "ignore": "-99"}
+            ],
+            "WND": [
+                {"name": "east_direction", "type": "float", "units": "degrees", "ignore": "-99"},
+                {"name": "north_direction", "type": "float", "units": "degrees", "ignore": "-99"},
+                {"name": "wind_speed", "type": "float", "units": "m/s", "ignore": "-99"},
+                {"name": "wind_gust", "type": "float", "units": "m/s", "ignore": "-99"},
+                {"name": "min_wind_speed", "type": "float", "units": "m/s", "ignore": "-99"},
+                {"name": "vane_heading", "type": "float", "units": "degrees", "ignore": "-99"},
+                {"name": "buoy_heading", "type": "float", "units": "degrees", "ignore": "-99"}
+           ],
+           "GPS": [
+                {"name": "position", "type": "point_degrees_minutes_direction", "component": "lat"},
+                {"name": "position", "type": "point_degrees_minutes_direction", "component": "lon"}
+            ],
+            "ADCP": [],
+            "BT": [
+                {"name": "regulated_battery_voltage", "type": "float", "units": "voltage", "ignore": "-99"},
+                {"name": "standing_wave_ratio", "type": "float", "units": "percent", "ignore": "-99"},
+                {"name": "can_serial_number", "type": "float", "units": "serial_number", "ignore": "-99"}
+            ]
+        }
+    }
+}

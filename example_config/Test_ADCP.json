@@ -1,0 +1,9 @@
+{
+    "140B97C6": {
+        "station": "Test ADCP 1",
+        "type": "trdi_adcp_pd15",
+        "line_offset": 2,
+        "multiread_mode": "wh",
+        "transducer_depth": 1.04
+    }
+}
