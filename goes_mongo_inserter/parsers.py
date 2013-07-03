@@ -12,7 +12,8 @@ from pymongo import MongoClient
 
 from prefixed_lines_parser import parse_prefixed_lines
 from prefixed_sections_parser import parse_prefixed_sections
-from trdi_adcp_parser import parse_trdi_pd15
+from trdi_adcp_readers.readers import read_PD15_file
+from trdi_adcp_parser import parse_trdi_PD0
 
 
 def parse_goes_header(header):
@@ -89,10 +90,16 @@ class GOESFileParser(threading.Thread):
 
         if file_object_id is not None and fields['failure_code'] == 'G':
             if self.config['type'] == 'trdi_adcp_pd15':
-                parse_trdi_pd15(self.path, self.config,
-                                file_object_id, db)
+                try:
+                    pd0_data = read_PD15_file(self.path,
+                                              self.config['line_offset'])
+                except:
+                    logger.error('Error reading pd0 data '
+                                 'from %s' % (self.path,))
+
+                parse_trdi_PD0(pd0_data, self.config,
+                               file_object_id, db)
             elif self.config['type'] == 'prefixed_lines':
-                print "Parsing prefixed lines"
                 parse_prefixed_lines(self.path, self.config,
                                      file_object_id, db)
             elif self.config['type'] == 'prefixed_sections':

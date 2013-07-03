@@ -40,7 +40,6 @@ def parse_line(config, prefix, line_parts, file_object_id):
             logger.error('Exceeded specified number of field '
                          'descriptors.  Ignoring remaining fields')
 
-    print line_data
     return line_data
 
 

@@ -66,7 +66,7 @@ def main():
     pid_file = '/var/run/goes_mongo_inserter.pid'
     try:
         logger.info("Starting")
-        notifier.loop(daemonize=False, pid_file=pid_file)
+        notifier.loop(daemonize=True, pid_file=pid_file)
     except pyinotify.NotifierError, err:
         logger.error('Unable to start notifier loop: %s' % (err))
         return 0

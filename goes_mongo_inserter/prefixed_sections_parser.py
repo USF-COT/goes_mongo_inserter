@@ -3,7 +3,8 @@ import logging
 logger = logging.getLogger("GMI")
 
 from datatype_parsers import datatype_parsers
-from trdi_adcp_parser import trdi_pd15_line_to_mongo
+from trdi_adcp_readers.readers import read_PD15_string
+from trdi_adcp_parser import parse_trdi_PD0
 
 
 def parse_line(config, section, line, file_object_id, mongo_db):
@@ -18,8 +19,6 @@ def parse_line(config, section, line, file_object_id, mongo_db):
     line_config = config['sections'][section]
     line_parts = line.split(',')
 
-    print len(line_config)
-
     # Parse text fields
     for i, part in enumerate(line_parts):
         if i < len(line_config):
@@ -30,9 +29,13 @@ def parse_line(config, section, line, file_object_id, mongo_db):
 
             field_type = field_desc['type']
             if field_type == 'trdi_adcp_pd15':
-                adcp_collection = mongo_db[config['station']+'.ADCP']
-                trdi_pd15_line_to_mongo(line, field_desc,
-                                        file_object_id, adcp_collection)
+                try:
+                    pd0_data = read_PD15_string(line)
+                except:
+                    logger.error('Unable to parse file at PD15 '
+                                 'string for %s' % (config['station'],))
+                parse_trdi_PD0(pd0_data, field_desc,
+                               file_object_id, mongo_db)
             elif field_type in datatype_parsers:
                 value = datatype_parsers[field_type](line_data,
                                                      field_desc,
@@ -107,7 +110,6 @@ def parse_prefixed_sections(path, config, file_object_id, mongo_db):
                     logger.info('Skipping line: %s.  It is before '
                                 'any known section specifier.' % (line,))
 
-    print data
     # Bulk INSERT data
     if len(data) > 0:
         mongo_collection = mongo_db[config['station']+'.env']
