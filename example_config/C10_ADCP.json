@@ -10,7 +10,7 @@
             ],
             "IMET": [],
             "ADCP": [
-                {"name": "adcp", "type": "trdi_adcp_pd15", "multiread_mode": "wh", "transducer_depth": 1.04}
+                {"name": "adcp", "type": "trdi_adcp_pd15"}
             ]
         }
     }
