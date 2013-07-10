@@ -1,0 +1,47 @@
+{
+    "14082346": {
+        "station": "FHP",
+        "type": "coastal_station",
+        "line_offset": 1,
+        "diagnostic_line": 1,
+        "diagnostic_fields": [
+            {"name": "julian", "type": "julian", "part": "year"},
+            {"name": "julian", "type": "julian", "part": "day"},
+            {"name": "sample_hour", "type": "int"},
+            {"name": "wl_sensor_offset", "type": "float", "divisor": 1000, "round": 2},
+            {"name": "wl_datum_offset", "type": "float", "divisor": 1000, "round": 2},
+            {"name": "P127_resultant_code", "type": "int"},
+            {"name": "volt_standing_wave_ratio", "type": "float", "divisor": 100, "round": 2},
+            {"name": "loaded_voltage", "type": "float", "divisor": 10, "round": 2},
+            {"name": "oscillator_drift", "type": "float", "divisor": 1000, "round": 2}
+        ],
+        "data_fields": [
+            {"name": "timestamp", "type": "timestamp", "part": "time", "format":"%H%M", "timezone": "UTC"},
+            {"name": "standard_deviation_wl", "type": "float", "divisor": 1000, "ignore": "-9999"},
+            {"name": "number_of_outliers_wl", "type": "float", "ignore": "-9999"},
+            {"name": "IGNORE", "type": "IGNORE"},
+            {"name": "water_level", "type": "float", "divisor": 1000, "ignore": "-9999"},
+            {"name": "precipitation", "type": "float", "ignore": "-9999"},
+            {"name": "air_temperature", "type": "float", "divisor": 100, "ignore": "-9999"},
+            {"name": "relative_humidity", "type": "float", "divisor": 100, "ignore": "-9999"},
+            {"name": "air_pressure", "type": "float", "divisor": 75.00616, "round": 2, "ignore": "-9999"},
+            {"name": "specific_conductivity", "type": "float", "divisor": 1000, "ignore": "-9999"},
+            {"name": "water_temperature", "type": "float", "divisor": 100, "ignore": "-9999"},
+            {"name": "upper_calibration_temperature", "type": "float", "divisor": 100, "ignore": "-9999"},
+            {"name": "lower_calibration_temperature", "type": "float", "divisor": 100, "ignore": "-9999"},
+            {"name": "wind_gust", "type": "float", "divisor": 100, "ignore": "-9999"},
+            {"name": "wind_speed", "type": "float", "divisor": 100, "ignore": "-9999"},
+            {"name": "wind_from_direction", "type": "float", "divisor": 100, "ignore": "-9999"},
+            {"name": "wind_gust_sonic", "type": "float", "divisor": 44.704, "ignore": "-9999"},
+            {"name": "wind_speed_sonic", "type": "float", "divisor": 44.704, "ignore": "-9999"},  // 100 * 0.44704
+            {"name": "wind_from_direction_sonic", "type": "float", "divisor": 100, "ignore": "-9999"}
+        ],
+        "calculated_data": [
+            {"name": "salinity", "type": "salinity", "conductivity": "specific_conductivity", "temperature": "water_temperature"},
+            {"name": "eastward_wind", "type": "eastward_wind", "wind_speed_field": "wind_speed", "wind_direction_field": "wind_from_direction"},
+            {"name": "northward_wind", "type": "northward_wind", "wind_speed_field": "wind_speed", "wind_direction_field": "wind_from_direction"},
+            {"name": "eastward_wind_sonic", "type": "eastward_wind", "wind_speed_field": "wind_speed", "wind_direction_field_sonic": "wind_from_direction_sonic"},
+            {"name": "northward_wind", "type": "northward_wind", "wind_speed_field": "wind_speed", "wind_direction_field_sonic": "wind_from_direction_sonic"}
+        ]
+    }
+}

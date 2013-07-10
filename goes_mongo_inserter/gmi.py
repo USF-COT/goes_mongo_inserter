@@ -16,6 +16,7 @@ import sys
 
 import argparse
 from goes_mongo_inserter.lib.parsers import GOESUpdateHandler
+import signal
 
 
 def main():
@@ -63,7 +64,14 @@ def main():
     notifier = pyinotify.Notifier(wm, handler)
     mask = pyinotify.IN_CLOSE_WRITE
     wm.add_watch(args.GOES_directory, mask)
-    pid_file = '/var/run/gmi/gmi.pid'
+
+    # Setup Signal Handler to Close Notifier
+    def handler(signum, frame):
+        notifier.close()
+
+    signal.signal(signal.SIGTERM, handler)
+
+    pid_file = '/var/run/gmi.pid'
     try:
         logger.info("Starting")
         notifier.loop(daemonize=True, pid_file=pid_file)
