@@ -16,10 +16,10 @@
             {"name": "oscillator_drift", "type": "float", "divisor": 1000, "round": 2}
         ],
         "data_fields": [
-            {"name": "timestamp", "type": "timestamp", "part": "time", "format":"%H%M", "timezone": "UTC"},
+            {"name": "timestamp", "type": "timestamp", "part": "time", "format":"0%H%M", "timezone": "UTC"},
             {"name": "standard_deviation_wl", "type": "float", "divisor": 1000, "ignore": "-9999"},
             {"name": "number_of_outliers_wl", "type": "float", "ignore": "-9999"},
-            {"name": "IGNORE", "type": "IGNORE"},
+            {"skip_field": true},
             {"name": "water_level", "type": "float", "divisor": 1000, "ignore": "-9999"},
             {"name": "precipitation", "type": "float", "ignore": "-9999"},
             {"name": "air_temperature", "type": "float", "divisor": 100, "ignore": "-9999"},
@@ -33,7 +33,7 @@
             {"name": "wind_speed", "type": "float", "divisor": 100, "ignore": "-9999"},
             {"name": "wind_from_direction", "type": "float", "divisor": 100, "ignore": "-9999"},
             {"name": "wind_gust_sonic", "type": "float", "divisor": 44.704, "ignore": "-9999"},
-            {"name": "wind_speed_sonic", "type": "float", "divisor": 44.704, "ignore": "-9999"},  // 100 * 0.44704
+            {"name": "wind_speed_sonic", "type": "float", "divisor": 44.704, "ignore": "-9999"},
             {"name": "wind_from_direction_sonic", "type": "float", "divisor": 100, "ignore": "-9999"}
         ],
         "calculated_data": [
