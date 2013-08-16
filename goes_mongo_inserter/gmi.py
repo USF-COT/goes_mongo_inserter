@@ -8,6 +8,7 @@
 # according to a given format and inserts it into a mongo database.
 
 import logging
+logger = logging.getLogger("GMI")
 import json
 
 import pyinotify
@@ -17,6 +18,29 @@ import sys
 import argparse
 from goes_mongo_inserter.lib.parsers import GOESUpdateHandler
 import signal
+
+
+def load_configs(path):
+    configs = {}
+
+    for filename in os.listdir(path):
+        if filename[0] == '.':
+            continue
+
+        config_contents = ''
+        with open(path+'/'+filename, 'r') as f:
+            config_contents = f.read()
+
+            try:
+                conf = json.loads(config_contents)
+            except Exception, e:
+                logger.error('Error processing %s: %s' % (filename, e))
+                return 0
+
+            for k, v in conf.items():
+                configs[k] = v
+
+    return configs
 
 
 def main():
@@ -40,23 +64,7 @@ def main():
     logger.addHandler(handler)
 
     # Load Configurations
-    configs = {}
-    for filename in os.listdir(args.config_path):
-        if filename[0] == '.':
-            continue
-
-        config_contents = ''
-        with open(args.config_path+'/'+filename, 'r') as f:
-            config_contents = f.read()
-
-            try:
-                conf = json.loads(config_contents)
-            except Exception, e:
-                logger.error('Error processing %s: %s' % (filename, e))
-                return 0
-
-            for k, v in conf.items():
-                configs[k] = v
+    configs = load_configs(args.config_path)
 
     # Setup PyInotify
     wm = pyinotify.WatchManager()

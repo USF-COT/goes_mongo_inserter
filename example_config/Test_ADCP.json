@@ -4,6 +4,7 @@
         "type": "trdi_adcp_pd15",
         "line_offset": 2,
         "multiread_mode": "wh",
-        "transducer_depth": 1.04
+        "insert_to_pgsql": true,
+        "pg_table": "station_data_test_adcp"
     }
 }
