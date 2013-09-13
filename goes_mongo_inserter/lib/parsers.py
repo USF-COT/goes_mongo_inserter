@@ -92,11 +92,20 @@ class GOESFileParser(threading.Thread):
             try:
                 if self.config['type'] == 'trdi_adcp_pd15':
                     try:
-                        pd0_data = read_PD15_file(self.path,
-                                                  self.config['line_offset'])
+                        pd0_data, pd0_bytes = (
+                            read_PD15_file(self.path,
+                                           self.config['line_offset'],
+                                           return_pd0=True)
+                        )
+                        logger.info(pd0_data)
                     except:
                         logger.error('Error reading pd0 data '
                                      'from %s' % (self.path,))
+
+                    if 'debug_pd0' in self.config and self.config['debug_pd0']:
+                        tmp_path = '/tmp/' + self.config['station'] + '.pd0'
+                        with open(tmp_path, 'ab') as f:
+                            f.write(pd0_bytes)
 
                     parse_trdi_PD0(pd0_data, self.config,
                                    file_object_id, db)

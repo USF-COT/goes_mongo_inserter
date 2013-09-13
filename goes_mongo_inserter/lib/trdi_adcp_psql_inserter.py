@@ -9,7 +9,7 @@ import os
 import psycopg2
 
 import logging
-logger = logging.getLogger("GMI")
+log = logging.getLogger("GMI")
 
 from itertools import izip
 
@@ -28,6 +28,8 @@ def insert_to_pgsql(pd0_data, config):
         'user=%s password=%s' % (host, dbname, port, user, password)
     )
 
+    log.info(conn_string)
+
     conn = psycopg2.connect(conn_string)
 
     cur = conn.cursor()
@@ -42,11 +44,11 @@ def insert_to_pgsql(pd0_data, config):
                                      pd0_data['current_direction']['data'][:last_good]),  # NOQA
                                 start=1):
 
-        eastward = dataset[0][0]
-        northward = dataset[0][1]
-        speed = dataset[1]
-        direction = dataset[2]
-        depth = bin_1_distance + depth_cell_length * (i-1)  # i starts at 1
+        eastward = round(dataset[0][0], 2)
+        northward = round(dataset[0][1], 2)
+        speed = round(dataset[1], 2)
+        direction = round(dataset[2], 2)
+        depth = float(bin_1_distance) + float(depth_cell_length) * (i-1)
         cur.execute('INSERT INTO %s '
                     '(timestamp, bin_number, '
                     'eastward_current, northward_current,'

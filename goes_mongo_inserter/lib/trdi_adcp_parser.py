@@ -40,6 +40,16 @@ def gen_qaqc_doc_part(qaqc):
 
 
 def convert_to_COMPS_units(pd0_data):
+    # Convert to meters and add transducer depth to bin 1 distance
+    pd0_data['fixed_leader']['bin_1_distance'] = (
+        pd0_data['fixed_leader']['bin_1_distance']/100.0 + 1.04
+    )
+
+    # Convert bin height to meters
+    pd0_data['fixed_leader']['depth_cell_length'] = (
+        pd0_data['fixed_leader']['depth_cell_length']/100.0
+    )
+
     variable_adjustments = {
         'heading': lambda x: x/100.0,  # 0.01 degrees to degrees
         'pitch': lambda x: x/100.0,  # 0.01 degrees to degrees
@@ -64,10 +74,8 @@ def convert_to_COMPS_units(pd0_data):
                                      hour, minute, second)
 
     # Velocity mm/s to cm/s
-    logger.info(pd0_data['velocity']['data'])
     for bin in pd0_data['velocity']['data']:
         bin[:] = [beam / 10.0 for beam in bin]
-    logger.info(pd0_data['velocity']['data'])
 
     # Calculate Current Speed and Direction
     pd0_data['current_speed'] = {}
@@ -85,14 +93,15 @@ def convert_to_COMPS_units(pd0_data):
         direction = math.atan2(z.real, z.imag) * 180/math.pi
         pd0_data['current_direction']['data'].append(direction)
 
-    # Echo Intensity to decibels
-    for bin in pd0_data['echo_intensity']['data']:
-        bin[:] = [beam * 0.45 for beam in bin]
+    ## Echo Intensity to decibels
+    #for bin in pd0_data['echo_intensity']['data']:
+    #    bin[:] = [beam * 0.45 for beam in bin]
 
     return pd0_data
 
 
 def parse_trdi_PD0(pd0_data, config, file_object_id, mongo_db):
+    logger.info(pd0_data)
     doc = convert_to_COMPS_units(pd0_data)
     doc['file_id'] = file_object_id
 
