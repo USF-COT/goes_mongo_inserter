@@ -3,14 +3,18 @@ import logging
 logger = logging.getLogger("GMI")
 
 from datatype_parsers import datatype_parsers
-from itertools import izip
 from datetime import datetime
 
 
 def parse_line(fields, line_parts):
     line_data = {}
 
-    for field_desc, data in izip(fields, line_parts):
+    for i, field_desc in enumerate(fields):
+        if i < len(line_parts):
+            data = line_parts[i]
+        else:
+            data = '-99'
+
         if 'skip_field' in field_desc and field_desc['skip_field']:
             continue  # Skip field
 

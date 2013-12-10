@@ -13,32 +13,31 @@ def parse_line(config, prefix, line_parts, file_object_id):
     line_config = config['lines'][prefix]
 
     # Parse text fields
-    for i, part in enumerate(line_parts[1:]):
-        if i < len(line_config):
-            field_desc = line_config[i]
-
-            if 'skip_field' in field_desc and field_desc['skip_field']:
-                continue  # Skip line
-
-            data_key = field_desc['name']
-            if 'units' in field_desc:
-                data_key += "-%s" % (field_desc['units'],)
-
-            field_type = field_desc['type']
-            if field_type in datatype_parsers:
-                value = datatype_parsers[field_type](line_data,
-                                                     field_desc,
-                                                     part.strip())
-                if value is not None:
-                    line_data[data_key] = value
-            else:
-                logger.error('Unknown type %s in configuration file line '
-                             '%s, field %s' % (field_type,
-                                               line_parts[0],
-                                               field_desc['name']))
+    for i, field_desc in enumerate(line_config):
+        if i < (len(line_parts) - 1):  # Account for line header
+            part = line_parts[i+1]
         else:
-            logger.error('Exceeded specified number of field '
-                         'descriptors.  Ignoring remaining fields')
+            part = '-99'
+
+        if 'skip_field' in field_desc and field_desc['skip_field']:
+            continue  # Skip line
+
+        data_key = field_desc['name']
+        if 'units' in field_desc:
+            data_key += "-%s" % (field_desc['units'],)
+
+        field_type = field_desc['type']
+        if field_type in datatype_parsers:
+            value = datatype_parsers[field_type](line_data,
+                                                 field_desc,
+                                                 part.strip())
+            if value is not None:
+                line_data[data_key] = value
+        else:
+            logger.error('Unknown type %s in configuration file line '
+                         '%s, field %s' % (field_type,
+                                           line_parts[0],
+                                           field_desc['name']))
 
     return line_data
 

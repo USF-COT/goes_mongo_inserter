@@ -20,5 +20,19 @@ class TestGMIADCP(unittest.TestCase):
         comps_data = convert_to_COMPS_units(self.pd0_data)
         print comps_data
 
+
+from lib.calculated_fields import compute_salinity
+
+
+class TestSalinityCalculation(unittest.TestCase):
+    def test_salinity(self):
+        cond = 51.1662
+        temp = 22.6275
+        depth = 1
+        salinity = 35.438
+
+        self.assertEqual(salinity, compute_salinity(cond, temp, depth))
+
+
 if __name__ == '__main__':
     unittest.main()
