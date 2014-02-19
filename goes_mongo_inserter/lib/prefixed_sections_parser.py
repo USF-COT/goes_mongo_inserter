@@ -20,36 +20,36 @@ def parse_line(config, section, line, file_object_id, mongo_db):
     line_parts = line.split(',')
 
     # Parse text fields
-    for i, part in enumerate(line_parts):
-        if i < len(line_config):
-            field_desc = line_config[i]
-            data_key = field_desc['name']
-            if 'units' in field_desc:
-                data_key += "-%s" % (field_desc['units'],)
-
-            field_type = field_desc['type']
-            if field_type == 'trdi_adcp_pd15':
-                try:
-                    pd0_data = read_PD15_string(line)
-                    parse_trdi_PD0(pd0_data, field_desc,
-                                   file_object_id, mongo_db)
-                except Exception, e:
-                    logger.error('Unable to parse file with PD15 '
-                                 'string for %s.  Exception %s' % (config['station'], e))  # NOQA
-            elif field_type in datatype_parsers:
-                value = datatype_parsers[field_type](line_data,
-                                                     field_desc,
-                                                     part.strip())
-                if value is not None:
-                    line_data[data_key] = value
-            else:
-                logger.error('Unknown type %s in configuration file line '
-                             '%s, field %s' % (field_type,
-                                               line_parts[0],
-                                               field_desc['name']))
+    for i, field_desc in enumerate(line_config):
+        if i < len(line_parts):
+            part = line_parts[i]
         else:
-            logger.error('Exceeded specified number of field '
-                         'descriptors.  Ignoring remaining fields')
+            part = '-99'
+
+        data_key = field_desc['name']
+        if 'units' in field_desc:
+            data_key += "-%s" % (field_desc['units'],)
+
+        field_type = field_desc['type']
+        if field_type == 'trdi_adcp_pd15':
+            try:
+                pd0_data = read_PD15_string(line)
+                parse_trdi_PD0(pd0_data, field_desc,
+                               file_object_id, mongo_db)
+            except Exception, e:
+                logger.error('Unable to parse file with PD15 '
+                             'string for %s.  Exception %s' % (config['station'], e))  # NOQA
+        elif field_type in datatype_parsers:
+            value = datatype_parsers[field_type](line_data,
+                                                 field_desc,
+                                                 part.strip())
+            if value is not None:
+                line_data[data_key] = value
+        else:
+            logger.error('Unknown type %s in configuration file line '
+                         '%s, field %s' % (field_type,
+                                           line_parts[0],
+                                           field_desc['name']))
 
     return line_data
 

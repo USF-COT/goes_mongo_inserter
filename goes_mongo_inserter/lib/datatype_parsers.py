@@ -12,7 +12,11 @@ def parse_int(line_data, field_desc, part):
         if part in ignore_vals:
             return None
 
-    return int(part)
+    retVal = int(part)
+    if 'multiplier' in field_desc:
+        retVal *= int(field_desc['multiplier'])
+
+    return retVal
 
 
 def parse_float(line_data, field_desc, part):
@@ -22,6 +26,9 @@ def parse_float(line_data, field_desc, part):
             return None
 
     retVal = float(part)
+    if 'multiplier' in field_desc:
+        retVal *= float(field_desc['multiplier'])
+
     if 'divisor' in field_desc:
         retVal /= float(field_desc['divisor'])
 
@@ -143,10 +150,14 @@ def parse_point_degrees_minutes_direction(line_data, field_desc, part):
 
     return gps_pos
 
+
+from calculated_fields import parse_calculated_fields
+
 datatype_parsers = {
     'int': parse_int, 'float': parse_float, 'text': parse_text,
     'timestamp': parse_timestamp,
     'julian': parse_julian,
     'point_degrees_minutes': parse_point_degrees_minutes,
-    'point_degrees_minutes_direction': parse_point_degrees_minutes_direction
+    'point_degrees_minutes_direction': parse_point_degrees_minutes_direction,
+    'calculated': parse_calculated_fields
 }
