@@ -105,7 +105,11 @@ def parse_trdi_PD0(pd0_data, config, file_object_id, mongo_db):
     doc = convert_to_COMPS_units(pd0_data)
     doc['file_id'] = file_object_id
 
-    qaqc = TRDIQAQC(pd0_data)
+    transducer_depth = None
+    if 'transducer_depth' in config:
+        transducer_depth = int(config['transducer_depth'])
+
+    qaqc = TRDIQAQC(pd0_data, transducer_depth=transducer_depth)
     doc['qaqc'] = gen_qaqc_doc_part(qaqc)
 
     mongo_collection = mongo_db[config['station']+'.ADCP']
