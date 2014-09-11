@@ -61,6 +61,8 @@ def insert_goes_file(path, config, goes_id, mongo_collection):
         fields['modified'] = datetime.fromtimestamp(int(fstat.st_mtime))
 
         file_object_id = mongo_collection.insert(fields)
+    else:
+        logger.error('Empty GOES file found at %s' % path)
 
     return (file_object_id, fields)
 
@@ -87,6 +89,17 @@ class GOESFileParser(threading.Thread):
                                                   self.config,
                                                   self.goes_id,
                                                   file_collection)
+
+        if file_object_id is None:
+            logger.error(
+                'Error inserting file %s into database.' % self.path
+            )
+            return
+
+        if fields['failure_code'] != 'G':
+            logger.warning(
+                'Poor signal found in %s.  Logging contents.' % self.path
+            )
 
         if file_object_id is not None and fields['failure_code'] == 'G':
             try:

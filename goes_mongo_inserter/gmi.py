@@ -68,8 +68,8 @@ def main():
 
     # Setup PyInotify
     wm = pyinotify.WatchManager()
-    handler = GOESUpdateHandler(configs)
-    notifier = pyinotify.Notifier(wm, handler)
+    goes_handler = GOESUpdateHandler(configs)
+    notifier = pyinotify.Notifier(wm, goes_handler)
     mask = pyinotify.IN_CLOSE_WRITE
     wm.add_watch(args.GOES_directory, mask)
 

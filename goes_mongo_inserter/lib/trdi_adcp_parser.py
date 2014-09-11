@@ -91,6 +91,8 @@ def convert_to_COMPS_units(pd0_data):
 
         pd0_data['current_speed']['data'].append(abs(z))
         direction = math.atan2(z.real, z.imag) * 180/math.pi
+        if direction < 0:
+            direction = direction + 360
         pd0_data['current_direction']['data'].append(direction)
 
     ## Echo Intensity to decibels
