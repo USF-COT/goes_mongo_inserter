@@ -95,6 +95,8 @@ class GOESFileParser(threading.Thread):
         if file_object_id is None:
             return
 
+        logger.info("Processing: %s with ID %s" % (self.path, file_object_id))
+
         if fields['failure_code'] != 'G':
             logger.warning(
                 'Poor signal found in %s.  Logging contents.' % self.path
@@ -147,7 +149,6 @@ class GOESUpdateHandler(pyinotify.ProcessEvent):
         self.configs = configs
 
     def process_file(self, event):
-        logger.info("Processing: %s" % event.pathname)
         if event.name[0] is not '.':  # Ignore hidden files
             if event.name in self.configs:
                 parser = GOESFileParser(event.pathname, event.name,
