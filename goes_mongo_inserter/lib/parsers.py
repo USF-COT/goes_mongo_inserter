@@ -95,7 +95,8 @@ class GOESFileParser(threading.Thread):
         if file_object_id is None:
             return
 
-        logger.info("Processing: %s with ID %s" % (self.path, file_object_id))
+        logger.info("Processing GOES %s. Station: %s. Mongo ID: %s"
+                    % (self.path, self.config['station'], file_object_id))
 
         if fields['failure_code'] != 'G':
             logger.warning(
