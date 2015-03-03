@@ -60,9 +60,11 @@ def insert_goes_file(path, config, goes_id, mongo_collection):
         fields['processed'] = datetime.utcnow()
         fields['modified'] = datetime.fromtimestamp(int(fstat.st_mtime))
 
-        file_object_id = mongo_collection.insert(fields)
-    else:
-        logger.error('Empty GOES file found at %s' % path)
+        try:
+            file_object_id = mongo_collection.insert(fields)
+        except Exception, ex:
+            logger.error('Unable to insert file from GOES %s: %s'
+                         % (goes_id, ex))
 
     return (file_object_id, fields)
 
@@ -91,9 +93,6 @@ class GOESFileParser(threading.Thread):
                                                   file_collection)
 
         if file_object_id is None:
-            logger.error(
-                'Error inserting file %s into database.' % self.path
-            )
             return
 
         if fields['failure_code'] != 'G':
@@ -110,7 +109,6 @@ class GOESFileParser(threading.Thread):
                                            self.config['line_offset'],
                                            return_pd0=True)
                         )
-                        logger.info(pd0_data)
                     except:
                         logger.error('Error reading pd0 data '
                                      'from %s' % (self.path,))
