@@ -13,8 +13,17 @@ from pymongo import MongoClient
 from prefixed_lines_parser import parse_prefixed_lines
 from prefixed_sections_parser import parse_prefixed_sections
 from coastal_station_parser import parse_coastal_station
-from trdi_adcp_readers.readers import read_PD15_file
-from trdi_adcp_parser import parse_trdi_PD0
+from trdi_adcp_parser import parse_trdi_adcp
+from multi_table_parser import parse_multi_table
+
+
+parsers = {
+    'trdi_adcp_pd15': parse_trdi_adcp,
+    'prefixed_lines': parse_prefixed_lines,
+    'prefixed_sections': parse_prefixed_sections,
+    'coastal_station': parse_coastal_station,
+    'multi_table': parse_multi_table
+}
 
 
 def parse_goes_header(header):
@@ -104,37 +113,18 @@ class GOESFileParser(threading.Thread):
             )
 
         if file_object_id is not None and fields['failure_code'] == 'G':
-            try:
-                if self.config['type'] == 'trdi_adcp_pd15':
-                    try:
-                        pd0_data, pd0_bytes = (
-                            read_PD15_file(self.path,
-                                           self.config['line_offset'],
-                                           return_pd0=True)
-                        )
-                    except:
-                        logger.error('Error reading pd0 data '
-                                     'from %s' % (self.path,))
-
-                    if 'debug_pd0' in self.config and self.config['debug_pd0']:
-                        tmp_path = '/tmp/' + self.config['station'] + '.pd0'
-                        with open(tmp_path, 'ab') as f:
-                            f.write(pd0_bytes)
-
-                    parse_trdi_PD0(pd0_data, self.config,
-                                   file_object_id, db)
-                elif self.config['type'] == 'prefixed_lines':
-                    parse_prefixed_lines(self.path, self.config,
-                                         file_object_id, db)
-                elif self.config['type'] == 'prefixed_sections':
-                    parse_prefixed_sections(self.path, self.config,
-                                            file_object_id, db)
-                elif self.config['type'] == 'coastal_station':
-                    parse_coastal_station(self.path, self.config,
-                                          file_object_id, db)
-            except Exception, e:
-                logger.error('Exception parsing '
-                             '%s type: %s' % (self.config['type'], e))
+            if self.config['type'] in parsers:
+                try:
+                    parsers[self.config['type']](self.path, self.config,
+                                                 file_object_id, db)
+                except Exception, e:
+                    logger.error('Exception parsing '
+                                 '%s type: %s' % (self.config['type'], e))
+            else:
+                logger.error(
+                    'Unrecognized config type %s.  Are you using '
+                    'an old version of GMI?' % self.config['type']
+                )
         elif file_object_id is not None and fields['failure_code'] == '?':
             logger.info('Bad goes transmission for file '
                         'with mongo id: %s' % (file_object_id))

@@ -1,5 +1,7 @@
 import math
 
+from trdi_adcp_readers.readers import read_PD15_file
+
 import logging
 logger = logging.getLogger("GMI")
 
@@ -100,6 +102,22 @@ def convert_to_COMPS_units(pd0_data):
     #    bin[:] = [beam * 0.45 for beam in bin]
 
     return pd0_data
+
+
+def parse_trdi_adcp(path, config, file_object_id, mongo_db):
+    try:
+        pd0_data, pd0_bytes = (
+            read_PD15_file(path,
+                           config['line_offset'],
+                           return_pd0=True)
+        )
+    except:
+        logger.error('Error reading pd0 data '
+                     'from %s' % (path,))
+        return
+
+    parse_trdi_PD0(pd0_data, config,
+                   file_object_id, mongo_db)
 
 
 def parse_trdi_PD0(pd0_data, config, file_object_id, mongo_db):

@@ -58,6 +58,7 @@ def parse_prefixed_lines(path, config, file_object_id, mongo_db):
             offset = offset - 1
 
         for line in f:
+            line_data = {}
             line_parts = line.split(',')
             prefix = None
             if line_parts[0] in config['lines']:
