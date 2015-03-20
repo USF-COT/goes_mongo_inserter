@@ -4,6 +4,7 @@ logger = logging.getLogger("GMI")
 
 from datatype_parsers import datatype_parsers
 from datetime import datetime
+from update_latest_readings import update_env_latest
 
 
 def parse_line(fields, line_parts):
@@ -102,3 +103,5 @@ def parse_coastal_station(path, config, file_object_id, mongo_db):
     if len(data) > 0:
         mongo_collection = mongo_db[config['station']+'.env']
         mongo_collection.insert(data)
+
+    update_env_latest(mongo_db, config, data)

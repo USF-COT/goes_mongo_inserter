@@ -3,6 +3,7 @@ import logging
 logger = logging.getLogger("GMI")
 
 from datatype_parsers import datatype_parsers
+from update_latest_readings import update_env_latest
 
 
 def parse_line(config, prefix, line_parts, file_object_id):
@@ -86,3 +87,5 @@ def parse_prefixed_lines(path, config, file_object_id, mongo_db):
     if len(data) > 0:
         mongo_collection = mongo_db[config['station']+'.env']
         mongo_collection.insert(data)
+
+    update_env_latest(mongo_db, config, data)

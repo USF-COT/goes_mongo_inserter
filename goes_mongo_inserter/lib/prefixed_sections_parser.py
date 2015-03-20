@@ -6,6 +6,8 @@ from datatype_parsers import datatype_parsers
 from trdi_adcp_readers.readers import read_PD15_string
 from trdi_adcp_parser import parse_trdi_PD0
 
+from update_latest_readings import update_env_latest
+
 
 def parse_line(config, section, line, file_object_id, mongo_db):
     """
@@ -114,3 +116,5 @@ def parse_prefixed_sections(path, config, file_object_id, mongo_db):
     if len(data) > 0:
         mongo_collection = mongo_db[config['station']+'.env']
         mongo_collection.insert(data)
+
+    update_env_latest(mongo_db, config, data)

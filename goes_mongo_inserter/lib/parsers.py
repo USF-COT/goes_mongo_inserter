@@ -109,7 +109,7 @@ class GOESFileParser(threading.Thread):
 
         if fields['failure_code'] != 'G':
             logger.warning(
-                'Poor signal found in %s.  Logging contents.' % self.path
+                'Poor signal found in %s.  Logging contents only.' % self.path
             )
 
         if file_object_id is not None and fields['failure_code'] == 'G':
