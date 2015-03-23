@@ -25,4 +25,7 @@ def update_env_latest(db, config, data):
                 'units': units
             }
 
+    # Remove _id parameter before update
+    del state['_id']
+
     collection.update({}, {'$set': state}, upsert=True)
