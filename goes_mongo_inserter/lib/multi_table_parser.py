@@ -48,7 +48,7 @@ def parse_data_line(diagnostics, field_config, line_parts):
     return data
 
 
-def parse_coastal_station(path, config, file_object_id, mongo_db):
+def parse_multi_table(path, config, file_object_id, mongo_db):
     """
     Parses GOES files containing mixed sensor data.
     The diagnostic_line parameter contains the line number
@@ -90,14 +90,17 @@ def parse_coastal_station(path, config, file_object_id, mongo_db):
         # Read remainder of lines with diagnostic information
         for line in f:
             line_parts = line.split()
-            line_data = parse_data_line(diagnostics=diagnostics,
-                                        field_config=config['data_fields'],
-                                        line_parts=line_parts)
+            for key, table_desc in config['tables'].items():
+                if len(table_desc) == len(line_parts):
+                    line_data = parse_data_line(diagnostics=diagnostics,
+                                                field_config=table_desc,
+                                                line_parts=line_parts)
 
-            if len(line_data) > 0:
-                line_data['diagnostic_id'] = diagnostic_id
-                line_data['file_id'] = file_object_id
-                data.append(line_data)
+                    if len(line_data) > 0:
+                        line_data['diagnostic_id'] = diagnostic_id
+                        line_data['file_id'] = file_object_id
+                        data.append(line_data)
+                        break
 
     # Bulk INSERT data
     if len(data) > 0:

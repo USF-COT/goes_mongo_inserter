@@ -36,7 +36,7 @@ def insert_to_pgsql(pd0_data, config):
                       'Message: %s' % (conn_string, e))
 
     timestamp = pd0_data['timestamp']
-    bin_1_distance = pd0_data['fixed_leader']['bin_1_distance']
+    bin_1_depth = pd0_data['qaqc']['bottom_stats']['bin_1_depth']
     depth_cell_length = pd0_data['fixed_leader']['depth_cell_length']
     last_good = pd0_data['qaqc']['bottom_stats']['last_good_counter']
 
@@ -49,7 +49,7 @@ def insert_to_pgsql(pd0_data, config):
         northward = round(dataset[0][1], 2)
         speed = round(dataset[1], 2)
         direction = round(dataset[2], 2)
-        depth = float(bin_1_distance) + float(depth_cell_length) * (i-1)
+        depth = float(bin_1_depth) + float(depth_cell_length) * (i-1)
         for conn in connections:
             try:
                 conn.cur.execute('INSERT INTO %s '

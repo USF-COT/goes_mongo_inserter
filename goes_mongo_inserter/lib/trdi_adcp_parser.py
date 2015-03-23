@@ -1,5 +1,7 @@
 import math
 
+from trdi_adcp_readers.readers import read_PD15_file
+
 import logging
 logger = logging.getLogger("GMI")
 
@@ -40,9 +42,9 @@ def gen_qaqc_doc_part(qaqc):
 
 
 def convert_to_COMPS_units(pd0_data):
-    # Convert to meters and add transducer depth to bin 1 distance
+    # Convert to meters
     pd0_data['fixed_leader']['bin_1_distance'] = (
-        pd0_data['fixed_leader']['bin_1_distance']/100.0 + 1.04
+        pd0_data['fixed_leader']['bin_1_distance']/100.0
     )
 
     # Convert bin height to meters
@@ -91,6 +93,8 @@ def convert_to_COMPS_units(pd0_data):
 
         pd0_data['current_speed']['data'].append(abs(z))
         direction = math.atan2(z.real, z.imag) * 180/math.pi
+        if direction < 0:
+            direction = direction + 360
         pd0_data['current_direction']['data'].append(direction)
 
     ## Echo Intensity to decibels
@@ -100,16 +104,31 @@ def convert_to_COMPS_units(pd0_data):
     return pd0_data
 
 
-def parse_trdi_PD0(pd0_data, config, file_object_id, mongo_db):
-    logger.info(pd0_data)
-    doc = convert_to_COMPS_units(pd0_data)
-    doc['file_id'] = file_object_id
+def parse_trdi_adcp(path, config, file_object_id, mongo_db):
+    try:
+        pd0_data, pd0_bytes = (
+            read_PD15_file(path,
+                           config['line_offset'],
+                           return_pd0=True)
+        )
+    except:
+        logger.error('Error reading pd0 data '
+                     'from %s' % (path,))
+        return
 
+    parse_trdi_PD0(pd0_data, config,
+                   file_object_id, mongo_db)
+
+
+def parse_trdi_PD0(pd0_data, config, file_object_id, mongo_db):
     transducer_depth = None
     if 'transducer_depth' in config:
         transducer_depth = int(config['transducer_depth'])
 
     qaqc = TRDIQAQC(pd0_data, transducer_depth=transducer_depth)
+
+    doc = convert_to_COMPS_units(pd0_data)
+    doc['file_id'] = file_object_id
     doc['qaqc'] = gen_qaqc_doc_part(qaqc)
 
     mongo_collection = mongo_db[config['station']+'.ADCP']
