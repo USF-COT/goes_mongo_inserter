@@ -38,6 +38,18 @@ def parse_float(line_data, field_desc, part):
     return retVal
 
 
+def parse_static(line_data, field_desc, part):
+    """ Used to pass through values from the configuration to dataset
+    """
+
+    if 'ignore' in field_desc:
+        ignore_vals = field_desc['ignore'].split(',')
+        if part in ignore_vals:
+            return None
+
+    return part
+
+
 def parse_text(line_data, field_desc, part):
     if 'ignore' in field_desc:
         ignore_vals = field_desc['ignore'].split(',')
@@ -155,6 +167,7 @@ from calculated_fields import parse_calculated_fields
 
 datatype_parsers = {
     'int': parse_int, 'float': parse_float, 'text': parse_text,
+    'static': parse_static,
     'timestamp': parse_timestamp,
     'julian': parse_julian,
     'point_degrees_minutes': parse_point_degrees_minutes,
